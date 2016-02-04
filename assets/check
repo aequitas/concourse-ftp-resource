@@ -8,14 +8,16 @@ from distutils.version import StrictVersion
 from ftplib import FTP
 from urllib.parse import urlparse
 
-logging.basicConfig(level=logging.DEBUG)
-
 params = json.loads(sys.stdin.read())
+
+if params['source'].get('debug', True):
+    logging.basicConfig(level=logging.DEBUG)
 
 logging.debug('params: %s', params)
 
 uri = urlparse(params['source']['uri'])
 regex = re.compile(params['source']['regex'])
+sort_key = params['source'].get('sort_key', 'version')
 
 with FTP() as ftp:
     # connect and login
@@ -32,13 +34,14 @@ with FTP() as ftp:
 
     def add_to_versions(line):
         """Add version to list of version if matches regex."""
+        logging.debug('ftp file line %s', line)
         match = regex.search(line)
         if match:
-            versions.append(match.groups()[0])
+            versions.append(match.groupdict())
 
     file_lines = ftp.retrlines('LIST', add_to_versions)
 
-    versions.sort(key=StrictVersion)
-    output = [{"ref": v} for v in versions]
+    versions.sort(key=lambda x: StrictVersion(x[sort_key]))
+    output = versions
 
     print(json.dumps(output))

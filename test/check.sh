@@ -14,7 +14,7 @@ it_can_check_a_file(){
 
     ref=0.0.1
     path=/
-    regex="file-(.*).tgz"
+    regex="(?P<file>file-(?P<version>.*).tgz)"
 
     # create test file
     touch ${FTP_ROOT}/file-${ref}.tgz
@@ -24,7 +24,7 @@ it_can_check_a_file(){
 
     # run check command
     check_uri $uri/$path $regex | jq -e "
-    . == [{ref: $(echo $ref | jq -R .)}]
+    . == [{file: $(echo file-${ref}.tgz| jq -R .), version: $(echo $ref | jq -R .)}]
     "
 }
 
@@ -36,7 +36,7 @@ it_can_check_multiple_file(){
 
     refs="0.0.2 0.0.1"
     path=/
-    regex="file-(.*).tgz"
+    regex="(?P<file>file-(?P<version>.*).tgz)"
 
     # create test file
     for ref in $refs;do
@@ -48,7 +48,8 @@ it_can_check_multiple_file(){
 
     # run check command
     check_uri $uri/$path $regex | jq -e '
-    . == [{"ref": "0.0.1"}, {"ref": "0.0.2"}]
+    . == [{"file": "file-0.0.1.tgz", "version": "0.0.1"},
+          {"file": "file-0.0.2.tgz", "version": "0.0.2"}]
     '
 }
 
