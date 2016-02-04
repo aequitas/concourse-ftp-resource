@@ -4,17 +4,24 @@ import glob
 import json
 import logging
 import os
+import re
 import sys
 from ftplib import FTP
 from urllib.parse import urlparse
 
-logging.basicConfig(level=logging.DEBUG)
-
 params = json.loads(sys.stdin.read())
+
+if params['source'].get('debug', True):
+    logging.basicConfig(level=logging.DEBUG)
+
 src_dir = sys.argv[1]
 
 logging.debug('params: %s', params)
 logging.debug('src_dir: %s', src_dir)
+
+uri = urlparse(params['source']['uri'])
+regex = re.compile(params['source']['regex'])
+version_key = params['source'].get('version_key', 'version')
 
 uri = urlparse(params['source']['uri'])
 file_glob = params['params']['file']
@@ -36,4 +43,11 @@ with FTP() as ftp:
     with open(src_file_path, 'rb') as f:
         ftp.storbinary('STOR {}'.format(file_name), f)
 
-    print(json.dumps({'version': {'ref': file_name}}))
+version = regex.match(file_name).groupdict()
+output = {'version': {version_key: version[version_key]}}
+if len(version.keys()) > 1:
+    output.update({'metadata': [
+        {"name": k, "value": v} for k, v in version.items() if not k == version_key
+    ]})
+
+print(json.dumps(output))

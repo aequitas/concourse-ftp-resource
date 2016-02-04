@@ -12,7 +12,8 @@ it_can_put_a_file(){
     chmod a+w ${FTP_ROOT}/test
 
     src_dir=$(mktemp -d ${TMPDIR_ROOT}/ftp-dest.XXXXXX)
-    regex="file-*.tgz"
+    regex="(?P<file>file-(?P<version>.*).tgz)"
+    file="file-*.tgz"
     ref=0.0.1
     path=test
 
@@ -23,8 +24,9 @@ it_can_put_a_file(){
     local uri=$(init_ftp_server ${FTP_ROOT})
 
     # run get command
-    put_uri $uri/$path $regex $src_dir | jq -e "
-    .version == {ref: $(echo file-${ref}.tgz | jq -R .)}
+    put_uri $uri/$path $regex $file $src_dir | jq -e "
+    .version == {version: $(echo ${ref} | jq -R .)} and
+    .metadata[0].value == \"file-0.0.1.tgz\"
     "
 
     # test if file exists and has right content
