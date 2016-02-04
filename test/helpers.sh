@@ -46,12 +46,9 @@ put_uri() {
   jq -n "{
     source: {
       uri: $(echo $1 | jq -R .),
-      template: $(echo $2 | jq -R .)
-    },
-    version: {
-      ref: $(echo $3 | jq -R .)
+      regex: $(echo $2 | jq -R .)
     }
-  }" | ${resource_dir}/out "$4" | tee /dev/stderr
+  }" | ${resource_dir}/out "$3" | tee /dev/stderr
 }
 
 # run ftp server for testing

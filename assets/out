@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 import sys
 from ftplib import FTP
 from urllib.parse import urlparse
@@ -9,12 +10,10 @@ from urllib.parse import urlparse
 params = json.loads(sys.stdin.read())
 
 uri = urlparse(params['source']['uri'])
-template = params['source']['template']
+regex = re.compile(params['source']['regex'])
 src_dir = sys.argv[1]
-version = params['version']['ref']
 
-file_name = template.format(version=version)
-
+file_name = os.listdir(src_dir)[0]
 src_file_path = os.path.join(src_dir, file_name)
 
 with FTP() as ftp:
@@ -30,4 +29,4 @@ with FTP() as ftp:
     with open(src_file_path, 'rb') as f:
         ftp.storbinary('STOR {}'.format(file_name), f)
 
-    print(json.dumps({'version': {'ref': version}}))
+    print(json.dumps({'version': {'ref': file_name}}))
