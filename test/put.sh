@@ -12,7 +12,7 @@ it_can_put_a_file(){
     chmod a+w ${FTP_ROOT}/test
 
     src_dir=$(mktemp -d ${TMPDIR_ROOT}/ftp-dest.XXXXXX)
-    regex="file-(.*).tgz"
+    regex="file-*.tgz"
     ref=0.0.1
     path=test
 

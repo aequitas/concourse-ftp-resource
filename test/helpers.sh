@@ -45,8 +45,10 @@ get_uri() {
 put_uri() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
-      regex: $(echo $2 | jq -R .)
+      uri: $(echo $1 | jq -R .)
+    },
+    params: {
+      file: $(echo $2 | jq -R .)
     }
   }" | ${resource_dir}/out "$3" | tee /dev/stderr
 }
