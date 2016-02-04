@@ -41,7 +41,7 @@ with FTP() as ftp:
 
     file_lines = ftp.retrlines('LIST', add_to_versions)
 
-    versions.sort(key=lambda x: StrictVersion(x[version_key]))
-    output = [{version_key: v[version_key]} for v in versions]
+versions.sort(key=lambda x: StrictVersion(x[version_key]))
+output = [{version_key: v[version_key]} for v in versions]
 
-    print(json.dumps(output))
+print(json.dumps(output))

@@ -7,9 +7,11 @@ import sys
 from ftplib import FTP
 from urllib.parse import urlparse
 
-logging.basicConfig(level=logging.DEBUG)
-
 params = json.loads(sys.stdin.read())
+
+if params['source'].get('debug', True):
+    logging.basicConfig(level=logging.DEBUG)
+
 dest_dir = sys.argv[1]
 
 logging.debug('params: %s', params)
@@ -17,7 +19,8 @@ logging.debug('dest_dir: %s', dest_dir)
 
 uri = urlparse(params['source']['uri'])
 template = params['source'].get('template', '')
-version = params['version']['ref']
+version_key = params['source'].get('version_key', 'version')
+version = params['version']['version']
 
 if template:
     file_name = template.format(version=version)
@@ -39,4 +42,15 @@ with FTP() as ftp:
     with open(dest_file_path, 'wb') as f:
         ftp.retrbinary('RETR {}'.format(file_name), f.write)
 
-    print(json.dumps({'version': {'ref': version}}))
+version = {
+    version_key: version,
+    "file": file_name,
+}
+
+output = {'version': {version_key: version[version_key]}}
+if len(version.keys()) > 1:
+    output.update({'metadata': [
+        {"name": k, "value": v} for k, v in version.items() if not k == version_key
+    ]})
+
+print(json.dumps(output))

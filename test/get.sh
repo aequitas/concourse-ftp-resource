@@ -25,7 +25,7 @@ it_can_get_a_file(){
 
     # run get command
     get_uri $uri/$path $template $ref $dest_dir | jq -e "
-    .version == {ref: $(echo $ref | jq -R .)}
+    .version == {version: $(echo $ref | jq -R .)}
     "
 
     # test if file exists and has right content

@@ -37,7 +37,7 @@ get_uri() {
       template: $(echo $2 | jq -R .)
     },
     version: {
-      ref: $(echo $3 | jq -R .)
+      version: $(echo $3 | jq -R .)
     }
   }" | ${resource_dir}/in "$4" | tee /dev/stderr
 }
