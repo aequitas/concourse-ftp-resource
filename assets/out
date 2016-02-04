@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import glob
 import json
@@ -6,8 +6,10 @@ import logging
 import os
 import re
 import sys
-from ftplib import FTP
-from urllib.parse import urlparse
+from urlparse import urlparse
+
+import ftputil
+from common import UriSession, matching_versions, version_to_output
 
 params = json.loads(sys.stdin.read())
 
@@ -22,32 +24,15 @@ logging.debug('src_dir: %s', src_dir)
 uri = urlparse(params['source']['uri'])
 regex = re.compile(params['source']['regex'])
 version_key = params['source'].get('version_key', 'version')
-
-uri = urlparse(params['source']['uri'])
 file_glob = params['params']['file']
 
 src_file_path = glob.glob(os.path.join(src_dir, file_glob))[0]
 file_name = src_file_path.split('/')[-1]
 
-with FTP() as ftp:
-    # connect and login
-    port = uri.port or 21
-    ftp.connect(uri.hostname, port)
-    if uri.username:
-        ftp.login(uri.username, uri.password)
-    else:
-        ftp.login()
-
-    ftp.cwd(uri.path)
-
-    with open(src_file_path, 'rb') as f:
-        ftp.storbinary('STOR {}'.format(file_name), f)
+with ftputil.FTPHost(uri, session_factory=UriSession) as ftp:
+    ftp.upload(src_file_path, file_name)
 
 version = regex.match(file_name).groupdict()
-output = {'version': {version_key: version[version_key]}}
-if len(version.keys()) > 1:
-    output.update({'metadata': [
-        {"name": k, "value": v} for k, v in version.items() if not k == version_key
-    ]})
+output = version_to_output(version, version_key)
 
 print(json.dumps(output))

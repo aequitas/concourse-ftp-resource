@@ -13,7 +13,7 @@ it_can_get_a_file(){
     chmod a+rx ${FTP_ROOT}
 
     dest_dir=$(mktemp -d ${TMPDIR_ROOT}/ftp-dest.XXXXXX)
-    template='file-{version}.tgz'
+    regex="(?P<file>file-(?P<version>.*).tgz)"
     ref=0.0.1
     path=/
 
@@ -24,7 +24,7 @@ it_can_get_a_file(){
     local uri=$(init_ftp_server ${FTP_ROOT})
 
     # run get command
-    get_uri $uri/$path $template $ref $dest_dir | jq -e "
+    get_uri $uri/$path $regex $ref $dest_dir | jq -e "
     .version == {version: $(echo $ref | jq -R .)}
     "
 

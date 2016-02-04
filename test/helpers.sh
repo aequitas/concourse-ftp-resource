@@ -34,7 +34,7 @@ get_uri() {
   jq -n "{
     source: {
       uri: $(echo $1 | jq -R .),
-      template: $(echo $2 | jq -R .)
+      regex: $(echo $2 | jq -R .)
     },
     version: {
       version: $(echo $3 | jq -R .)

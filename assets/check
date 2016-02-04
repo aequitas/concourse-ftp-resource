@@ -1,12 +1,13 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import json
 import logging
 import re
 import sys
-from distutils.version import StrictVersion
-from ftplib import FTP
-from urllib.parse import urlparse
+from urlparse import urlparse
+
+import ftputil
+from common import UriSession, matching_versions, versions_to_output
 
 params = json.loads(sys.stdin.read())
 
@@ -19,29 +20,10 @@ uri = urlparse(params['source']['uri'])
 regex = re.compile(params['source']['regex'])
 version_key = params['source'].get('version_key', 'version')
 
-with FTP() as ftp:
-    # connect and login
-    ftp.connect(uri.hostname, uri.port)
-    if uri.username:
-        ftp.login(uri.username, uri.password)
-    else:
-        ftp.login()
+with ftputil.FTPHost(uri, session_factory=UriSession) as ftp:
+    # get matching version from file list
+    versions = matching_versions(ftp.listdir('.'), regex)
 
-    # get list of files from desired location
-    ftp.cwd(uri.path)
-
-    versions = []
-
-    def add_to_versions(line):
-        """Add version to list of version if matches regex."""
-        logging.debug('ftp file line %s', line)
-        match = regex.search(line)
-        if match:
-            versions.append(match.groupdict())
-
-    file_lines = ftp.retrlines('LIST', add_to_versions)
-
-versions.sort(key=lambda x: StrictVersion(x[version_key]))
-output = [{version_key: v[version_key]} for v in versions]
+output = versions_to_output(versions, version_key)
 
 print(json.dumps(output))
