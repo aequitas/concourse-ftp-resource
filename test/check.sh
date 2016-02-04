@@ -23,9 +23,11 @@ it_can_check_a_file(){
     local uri=$(init_ftp_server ${FTP_ROOT})
 
     # run check command
-    check_uri $uri/$path $regex | jq -e "
-    . == [{file: $(echo file-${ref}.tgz| jq -R .), version: $(echo $ref | jq -R .)}]
-    "
+    check_uri $uri/$path $regex | jq -e '
+    . == [{version: {version: "0.0.1"}, metadata: [
+        {name: "file", value: "file-0.0.1.tgz"}
+    ]}]
+    '
 }
 
 # should be able to return the versions of multiple file on the ftp server
@@ -48,8 +50,14 @@ it_can_check_multiple_file(){
 
     # run check command
     check_uri $uri/$path $regex | jq -e '
-    . == [{"file": "file-0.0.1.tgz", "version": "0.0.1"},
-          {"file": "file-0.0.2.tgz", "version": "0.0.2"}]
+    . == [
+        {version: {version: "0.0.1"}, metadata: [
+            {name: "file", value: "file-0.0.1.tgz"}
+        ]},
+        {version: {version: "0.0.2"}, metadata: [
+            {name: "file", value: "file-0.0.2.tgz"}
+        ]}
+    ]
     '
 }
 

@@ -17,7 +17,7 @@ logging.debug('params: %s', params)
 
 uri = urlparse(params['source']['uri'])
 regex = re.compile(params['source']['regex'])
-sort_key = params['source'].get('sort_key', 'version')
+version_key = params['source'].get('version_key', 'version')
 
 with FTP() as ftp:
     # connect and login
@@ -41,7 +41,11 @@ with FTP() as ftp:
 
     file_lines = ftp.retrlines('LIST', add_to_versions)
 
-    versions.sort(key=lambda x: StrictVersion(x[sort_key]))
-    output = versions
+    versions.sort(key=lambda x: StrictVersion(x[version_key]))
+    output = [
+        {
+            'version': {version_key: v[version_key]},
+            'metadata': [{"name": k, "value": v} for k, v in v.items() if not k == version_key]
+            } for v in versions]
 
     print(json.dumps(output))
