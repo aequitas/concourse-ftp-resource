@@ -28,8 +28,8 @@ it_can_put_a_file(){
     "
 
     # test if file exists and has right content
-    test -e ${FTP_ROOT}/file-${ref}.tgz
-    diff ${src_dir}/file-${ref}.tgz ${FTP_ROOT}/file-${ref}.tgz
+    test -e ${FTP_ROOT}/${path}/file-${ref}.tgz
+    diff ${src_dir}/file-${ref}.tgz ${FTP_ROOT}/${path}/file-${ref}.tgz
 }
 
 run it_can_put_a_file
