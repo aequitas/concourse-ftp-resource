@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
 
 import json
+import logging
 import re
 import sys
 from distutils.version import StrictVersion
 from ftplib import FTP
 from urllib.parse import urlparse
 
+logging.basicConfig(level=logging.DEBUG)
+
 params = json.loads(sys.stdin.read())
+
+logging.debug('params: %s', params)
 
 uri = urlparse(params['source']['uri'])
 regex = re.compile(params['source']['regex'])

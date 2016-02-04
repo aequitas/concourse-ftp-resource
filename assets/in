@@ -1,19 +1,28 @@
 #!/usr/bin/env python3
 
 import json
+import logging
 import os
 import sys
 from ftplib import FTP
 from urllib.parse import urlparse
 
+logging.basicConfig(level=logging.DEBUG)
+
 params = json.loads(sys.stdin.read())
+dest_dir = sys.argv[1]
+
+logging.debug('params: %s', params)
+logging.debug('dest_dir: %s', dest_dir)
 
 uri = urlparse(params['source']['uri'])
-template = params['source']['template']
-dest_dir = sys.argv[1]
+template = params['source'].get('template', '')
 version = params['version']['ref']
 
-file_name = template.format(version=version)
+if template:
+    file_name = template.format(version=version)
+else:
+    file_name = version
 
 dest_file_path = os.path.join(dest_dir, file_name)
 

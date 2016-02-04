@@ -2,17 +2,22 @@
 
 import glob
 import json
+import logging
 import os
-import re
 import sys
 from ftplib import FTP
 from urllib.parse import urlparse
 
+logging.basicConfig(level=logging.DEBUG)
+
 params = json.loads(sys.stdin.read())
+src_dir = sys.argv[1]
+
+logging.debug('params: %s', params)
+logging.debug('src_dir: %s', src_dir)
 
 uri = urlparse(params['source']['uri'])
 file_glob = params['params']['file']
-src_dir = sys.argv[1]
 
 src_file_path = glob.glob(os.path.join(src_dir, file_glob))[0]
 file_name = src_file_path.split('/')[-1]
