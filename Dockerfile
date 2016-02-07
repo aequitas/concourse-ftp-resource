@@ -2,7 +2,7 @@ FROM gliderlabs/alpine:3.3
 
 ENV LANG C
 
-RUN apk add --no-cache python py-pip vsftpd jq
+RUN apk add --no-cache python py-pip vsftpd jq bash
 RUN pip install ftputil
 
 ADD assets/ /opt/resource/
