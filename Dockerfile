@@ -1,9 +1,12 @@
-FROM gliderlabs/alpine:3.3
+FROM python:3-alpine
 
 ENV LANG C
 
-RUN apk add --no-cache python py-pip vsftpd jq bash
-RUN pip install ftputil
+# test requirements
+RUN apk add --no-cache vsftpd jq
+
+ADD requirements.txt requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 ADD assets/ /opt/resource/
 RUN chmod +x /opt/resource/*
