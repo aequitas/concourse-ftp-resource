@@ -1,20 +1,4 @@
-import json
-import subprocess
-import sys
-
-
-def cmd(cmd_name, source, args=[], version={}, params={}):
-    """Wrap command interaction for easier use with python objects."""
-
-    in_json = json.dumps({
-        "source": source,
-        "version": version,
-        "params": params,
-    })
-    output = subprocess.check_output('/opt/resource/check',
-        stderr=sys.stderr, input=bytes(in_json, 'utf-8'))
-
-    return json.loads(output.decode())
+from conftest import cmd
 
 
 def test_check_one_file(ftp_root, ftp_server):

@@ -1,5 +1,7 @@
+import json
 import socket
 import subprocess
+import sys
 
 import pytest
 
@@ -33,3 +35,16 @@ def ftp_server(ftp_root, free_port):
     process = subprocess.Popen(cmd)
     yield("ftp://localhost:{}".format(free_port))
     process.terminate()
+
+def cmd(cmd_name, source, args=[], version={}, params={}):
+    """Wrap command interaction for easier use with python objects."""
+
+    in_json = json.dumps({
+        "source": source,
+        "version": version,
+        "params": params,
+    })
+    output = subprocess.check_output('/opt/resource/check',
+        stderr=sys.stderr, input=bytes(in_json, 'utf-8'))
+
+    return json.loads(output.decode())
