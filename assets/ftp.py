@@ -80,17 +80,34 @@ class FTPResource(Resource):
 
     def cmd_out(self,
                 src_dir: [str],
-                file: str) -> str:
+                file: str = '*',
+                keep_versions: int = None) -> str:
         """Upload all files in src_dir matching glob."""
         file_glob = file
-        src_file_path = glob.glob(os.path.join(src_dir[0], file_glob))[0]
+        glob_files = glob.glob(os.path.join(src_dir[0], file_glob))
+        log.debug('glob matched files: %s', glob_files)
+        if not glob_files:
+            log.error('no files matched')
+
+        src_file_path = glob_files[0]
         file_name = src_file_path.split('/')[-1]
 
         log.debug('uploading file: %s, as: %s', src_file_path, file_name)
         self.ftp.upload(src_file_path, file_name)
 
+        if keep_versions:
+            self._delete_old_versions(keep_versions)
+
         version = self.regex.match(file_name).groupdict()
         return self._version_to_output(version)
+
+    def _delete_old_versions(self, keep_versions: int):
+        """Delete old versions of file keeping up to specified amont."""
+        old_versions = self._regex_matches(self.ftp.listdir('.'))[:-keep_versions]
+        for delete_file_name in [v.group() for v in old_versions]:
+            log.debug('deleting old version: %s', delete_file_name)
+            self.ftp.remove(delete_file_name)
+
 
     def _versions_to_output(self, versions: [str]):
         """Convert list of k/v dicts into list of `version` output."""
@@ -99,10 +116,13 @@ class FTPResource(Resource):
 
         return output
 
+    def _regex_matches(self, file_list: [str]):
+        """Return list of matched regex objects for matching elements in file_list."""
+        return [m for m in [self.regex.match(f) for f in file_list] if m]
+
     def _matching_versions(self, file_list: [str]):
         """Return dict of matched regex groups for matching elements in file_list."""
-        return [m.groupdict() for m in [self.regex.match(f) for f in file_list] if m]
-
+        return [m.groupdict() for m in self._regex_matches(file_list)]
 
     def _version_to_output(self, version: str):
         """Convert single k/v version dict into `version`/`metadata` output."""

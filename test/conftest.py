@@ -1,10 +1,16 @@
 import json
 import socket
+import stat
 import subprocess
 import sys
 
 import pytest
 
+# subdirectory in the ftp root to work on, vsftpd refused in writable root
+DIRECTORY = 'test'
+
+# default content for files to test
+CONTENT = '123'
 
 @pytest.fixture
 def free_port():
@@ -18,7 +24,12 @@ def free_port():
 @pytest.fixture
 def ftp_root(tmpdir):
     """Return temporary ftp root directory."""
-    return tmpdir
+    return tmpdir.mkdir('ftproot')
+
+@pytest.fixture
+def work_dir(tmpdir):
+    """Return temporary directory for output/input files."""
+    return tmpdir.mkdir('work_dir')
 
 @pytest.yield_fixture
 def ftp_server(ftp_root, free_port):
@@ -27,13 +38,17 @@ def ftp_server(ftp_root, free_port):
     Returns uri to the ftp.
     """
 
+    ftp_root.mkdir(DIRECTORY).chmod(stat.S_IWOTH | stat.S_IXOTH | stat.S_IROTH)
+
     cmd = [
         'vsftpd', '-olisten_port=' + str(free_port), '-oseccomp_sandbox=NO',
         '-oanon_root=' + str(ftp_root), '-oanon_upload_enable=YES',
-        '-owrite_enable=YES', '-obackground=YES',
+        '-owrite_enable=YES', '-obackground=YES', '-oanon_other_write_enable=YES'
     ]
     process = subprocess.Popen(cmd)
-    yield("ftp://localhost:{}/test".format(free_port))
+
+    yield("ftp://localhost:{}/{}".format(free_port, DIRECTORY))
+
     process.terminate()
 
 def cmd(cmd_name, source, args: list = [], version={}, params={}):
@@ -50,8 +65,7 @@ def cmd(cmd_name, source, args: list = [], version={}, params={}):
 
     return json.loads(output.decode())
 
-def make_files(root, files, content='123', path='test'):
+def make_files(root, files, content='123'):
     """Create files in tmpdir root."""
 
-    directory = root.mkdir(path)
-    [directory.join(f).write(content) for f in files]
+    [root.join(DIRECTORY).join(f).write(content)for f in files]

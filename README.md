@@ -42,6 +42,10 @@ Uses the `regex` to compose a list of files and versions, will return the one fi
 
 Uploads a file(s) glob matching `file` to the ftp directory specified by `uri`.
 
+* `file`: Glob used to determine files to upload from src dir (default `*`).
+
+* `keep_versions`: If specified determined the amount of files to keep, deleting the old versions (default null). Requires a regex capture group named `file` to work.
+
 #### Parameters
 
 * `file`: *Required.* Glob pattern to specify which files need to be uploaded.
