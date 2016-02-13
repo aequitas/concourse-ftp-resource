@@ -2,7 +2,7 @@
 
 import ftplib
 import glob
-import logging
+import logging as log
 import os
 import re
 import sys
@@ -12,7 +12,7 @@ from urllib.parse import urlparse
 
 import ftputil
 
-logging.basicConfig(level=logging.DEBUG)
+log.basicConfig(level=log.DEBUG)
 
 class UriSession(ftplib.FTP):
     """Ftputil session to accept a URI as contructor argument."""
@@ -44,11 +44,22 @@ class FTPResource(Resource):
 
         return ftputil.FTPHost(urlparse(uri), session_factory=UriSession)
 
-    def cmd_check(self) -> str:
-        """Check command."""
-        versions = self._matching_versions(self.ftp.listdir('.'))
+    def cmd_check(self, version: dict = {}) -> str:
+        """Check for current or new version."""
 
-        return self._versions_to_output(versions)
+        # get complete list of all versions
+        versions = self._versions_to_output(self._matching_versions(self.ftp.listdir('.')))
+
+        # if version is specified get newer versions
+        if version:
+            current_version = version
+            new_versions = versions[versions.index(current_version):]
+            new_versions.pop(0)
+        else:
+            # otherwise only get the current version
+            new_versions = [versions[-1]]
+
+        return new_versions
 
     def cmd_in(self,
                dest_dir: [str],

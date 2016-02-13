@@ -15,7 +15,7 @@ class Resource:
 
         with self.context(**data['source']) as self.ftp:
             if command_name == 'check':
-                output = self.cmd_check(**data.get('version', {}))
+                output = self.cmd_check(version=data.get('version', {}))
             elif command_name == 'in':
                 output = self.cmd_check(command_argument, **data.get('version', {}))
             elif command_name == 'out':

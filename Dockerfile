@@ -13,5 +13,5 @@ ADD assets/ /opt/resource/
 RUN chmod +x /opt/resource/*
 
 ADD test/ /opt/resource-tests/
-RUN py.test -l --tb=short /opt/resource-tests
+RUN py.test -x -l --tb=short -r fE /opt/resource-tests
 RUN pylama /opt/resource /opt/resource-tests/

@@ -33,19 +33,3 @@ def ftp_server(ftp_root, free_port):
     process = subprocess.Popen(cmd)
     yield("ftp://localhost:{}".format(free_port))
     process.terminate()
-
-@pytest.fixture
-def uploaded_file(ftp_server, ftp_root):
-    """Place one file in the FTP."""
-    file_name = 'filename-0.0.0.tgz'
-    ftp_root.join(file_name).write('')
-
-    return file_name
-
-@pytest.fixture
-def uploaded_files(ftp_server, ftp_root):
-    """Place more files in the FTP."""
-    file_names = ['filename-0.0.0.tgz', 'filename-0.0.1.tgz']
-    [ftp_root.join(file_name).write('') for file_name in file_names]
-
-    return file_names
