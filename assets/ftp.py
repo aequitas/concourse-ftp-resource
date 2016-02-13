@@ -63,14 +63,15 @@ class FTPResource(Resource):
 
     def cmd_in(self,
                dest_dir: [str],
-               version: str) -> str:
+               version: dict) -> str:
         """Retrieve file matching version into dest_dir.."""
         # get matching version from file list
         versions = self._matching_versions(self.ftp.listdir('.'))
 
-        match_version = next(v for v in versions if v[self.version_key] == version)
+        match_version = next(v for v in versions if v[self.version_key] == version[self.version_key])
 
         file_name = match_version['file']
+
         dest_file_path = os.path.join(dest_dir[0], file_name)
 
         self.ftp.download(file_name, dest_file_path)

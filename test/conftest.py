@@ -36,7 +36,7 @@ def ftp_server(ftp_root, free_port):
     yield("ftp://localhost:{}".format(free_port))
     process.terminate()
 
-def cmd(cmd_name, source, args=[], version={}, params={}):
+def cmd(cmd_name, source, args: list = [], version={}, params={}):
     """Wrap command interaction for easier use with python objects."""
 
     in_json = json.dumps({
@@ -44,7 +44,8 @@ def cmd(cmd_name, source, args=[], version={}, params={}):
         "version": version,
         "params": params,
     })
-    output = subprocess.check_output('/opt/resource/check',
+    command = ['/opt/resource/' + cmd_name] + args
+    output = subprocess.check_output(command,
         stderr=sys.stderr, input=bytes(in_json, 'utf-8'))
 
     return json.loads(output.decode())

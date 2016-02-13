@@ -11,7 +11,7 @@ def test_check_one_file(ftp_root, ftp_server):
         "regex": "(?P<file>filename-(?P<version>.*).tgz)"
     }
 
-    result = cmd('in', source)
+    result = cmd('check', source)
 
     assert result == [{"version": "0.0.0"}]
 
@@ -26,7 +26,7 @@ def test_check_multiple_files(ftp_root, ftp_server):
         "regex": "(?P<file>filename-(?P<version>.*).tgz)"
     }
 
-    result = cmd('in', source)
+    result = cmd('check', source)
 
     assert result == [{"version": "0.0.1"}], 'should only return most recent version'
 
@@ -43,7 +43,7 @@ def test_check_passing_version(ftp_root, ftp_server):
         "regex": "(?P<file>filename-(?P<version>.*).tgz)"
     }
 
-    result = cmd('in', source, version={"version": "0.0.1"})
+    result = cmd('check', source, version={"version": "0.0.1"})
 
     assert {"version": "0.0.2"} in result, 'new version should be in result'
     assert {"version": "0.0.3"} in result, 'new version should be in result'
@@ -61,6 +61,6 @@ def test_check_no_new_version(ftp_root, ftp_server):
         "regex": "(?P<file>filename-(?P<version>.*).tgz)"
     }
 
-    result = cmd('in', source, version={"version": "0.0.1"})
+    result = cmd('check', source, version={"version": "0.0.1"})
 
     assert result == []

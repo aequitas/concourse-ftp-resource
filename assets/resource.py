@@ -17,7 +17,7 @@ class Resource:
             if command_name == 'check':
                 output = self.cmd_check(version=data.get('version', {}))
             elif command_name == 'in':
-                output = self.cmd_in(command_argument, **data.get('version', {}))
+                output = self.cmd_in(command_argument, version=data.get('version'))
             elif command_name == 'out':
                 output = self.cmd_out(command_argument, **data.get('params', {}))
 
