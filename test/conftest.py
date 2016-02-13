@@ -6,7 +6,7 @@ import pytest
 
 @pytest.fixture
 def free_port():
-    # temporary bind to socket 0 to get a free port assigned by the OS
+    """temporary bind to socket 0 to get a free port assigned by the OS."""
     sock = socket.socket()
     sock.bind(('', 0))
     port = sock.getsockname()[1]
@@ -15,10 +15,15 @@ def free_port():
 
 @pytest.fixture
 def ftp_root(tmpdir):
+    """Return temporary ftp root directory."""
     return tmpdir
 
 @pytest.yield_fixture
 def ftp_server(ftp_root, free_port):
+    """Run FTP server on ftp_root.
+
+    Returns uri to the ftp.
+    """
 
     cmd = [
         'vsftpd', '-olisten_port=' + str(free_port), '-oseccomp_sandbox=NO',
@@ -31,10 +36,16 @@ def ftp_server(ftp_root, free_port):
 
 @pytest.fixture
 def uploaded_file(ftp_server, ftp_root):
+    """Place one file in the FTP."""
     file_name = 'filename-0.0.0.tgz'
     ftp_root.join(file_name).write('')
 
-    return {
-        "ftp_uri": ftp_server,
-        "file_name": file_name
-    }
+    return file_name
+
+@pytest.fixture
+def uploaded_files(ftp_server, ftp_root):
+    """Place more files in the FTP."""
+    file_names = ['filename-0.0.0.tgz', 'filename-0.0.1.tgz']
+    [ftp_root.join(file_name).write('') for file_name in file_names]
+
+    return file_names

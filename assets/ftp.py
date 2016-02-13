@@ -31,16 +31,21 @@ class UriSession(ftplib.FTP):
         self.cwd(uri.path)
 
 class FTPResource(Resource):
+    """FTP resource implementation."""
+
     def context(self,
                 uri: str,
                 regex: str,
                 version_key: str = 'version') -> str:
+        """Provide context for commands to run in, takes 'source'."""
+
         self.regex = re.compile(regex)
         self.version_key = version_key
 
         return ftputil.FTPHost(urlparse(uri), session_factory=UriSession)
 
     def cmd_check(self) -> str:
+        """Check command."""
         versions = self._matching_versions(self.ftp.listdir('.'))
 
         return self._versions_to_output(versions)
@@ -48,6 +53,7 @@ class FTPResource(Resource):
     def cmd_in(self,
                dest_dir: [str],
                version: str) -> str:
+        """Retrieve file matching version into dest_dir.."""
         # get matching version from file list
         versions = self._matching_versions(self.ftp.listdir('.'))
 
@@ -63,6 +69,7 @@ class FTPResource(Resource):
     def cmd_out(self,
                 src_dir: [str],
                 file: str) -> str:
+        """Upload all files in src_dir matching glob."""
         file_glob = file
         src_file_path = glob.glob(os.path.join(src_dir[0], file_glob))[0]
         file_name = src_file_path.split('/')[-1]
