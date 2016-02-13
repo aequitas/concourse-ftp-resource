@@ -1,5 +1,1 @@
 ftputil
-obiwan
-pylama
-pytest
-isort
