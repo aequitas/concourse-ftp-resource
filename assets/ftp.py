@@ -2,7 +2,6 @@
 
 import ftplib
 import glob
-import json
 import logging
 import os
 import re
@@ -13,6 +12,7 @@ from urllib.parse import urlparse
 
 import ftputil
 
+logging.basicConfig(level=logging.DEBUG)
 
 class UriSession(ftplib.FTP):
     """Ftputil session to accept a URI as contructor argument."""
