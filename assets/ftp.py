@@ -95,4 +95,4 @@ class FTPResource(Resource):
 
         return output
 
-FTPResource().run(os.path.basename(__file__), sys.stdin.read(), sys.argv[1:])
+print(FTPResource().run(os.path.basename(__file__), sys.stdin.read(), sys.argv[1:]))
