@@ -81,7 +81,7 @@ def test_delete_old(ftp_root, ftp_server, work_dir):
         ]
     }
 
-def test_delete_old(ftp_root, ftp_server, work_dir):
+def test_delete_old_few(ftp_root, ftp_server, work_dir):
     """Test if to few files are not deleted."""
 
     # create file to upload
