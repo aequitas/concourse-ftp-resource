@@ -1,5 +1,7 @@
 import json
-import logging
+import logging as log
+import os
+import tempfile
 
 
 class Resource:
@@ -9,9 +11,16 @@ class Resource:
         """Parse input/arguments, perform requested command return output."""
         data = json.loads(json_data)
 
-        logging.debug('command: %s', command_name)
-        logging.debug('input: %s', data)
-        logging.debug('args: %s', command_argument)
+        # allow debug logging to console for tests
+        if os.environ.get('RESOURCE_DEBUG', False) or data.get('source', {}).get('debug', False):
+            log.basicConfig(level=log.DEBUG)
+        else:
+            logfile = tempfile.NamedTemporaryFile(delete=False)
+            log.basicConfig(level=log.DEBUG, filename=logfile)
+
+        log.debug('command: %s', command_name)
+        log.debug('input: %s', data)
+        log.debug('args: %s', command_argument)
 
         with self.context(**data['source']) as self.ftp:
             if command_name == 'check':

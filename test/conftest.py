@@ -33,7 +33,7 @@ def ftp_server(ftp_root, free_port):
         '-owrite_enable=YES', '-obackground=YES',
     ]
     process = subprocess.Popen(cmd)
-    yield("ftp://localhost:{}".format(free_port))
+    yield("ftp://localhost:{}/test".format(free_port))
     process.terminate()
 
 def cmd(cmd_name, source, args: list = [], version={}, params={}):
@@ -49,3 +49,9 @@ def cmd(cmd_name, source, args: list = [], version={}, params={}):
         stderr=sys.stderr, input=bytes(in_json, 'utf-8'))
 
     return json.loads(output.decode())
+
+def make_files(root, files, content='123', path='test'):
+    """Create files in tmpdir root."""
+
+    directory = root.mkdir(path)
+    [directory.join(f).write(content) for f in files]

@@ -12,7 +12,6 @@ from urllib.parse import urlparse
 
 import ftputil
 
-log.basicConfig(level=log.DEBUG)
 
 class UriSession(ftplib.FTP):
     """Ftputil session to accept a URI as contructor argument."""
@@ -28,6 +27,7 @@ class UriSession(ftplib.FTP):
         else:
             self.login()
 
+        log.debug('changing to: %s', uri.path)
         self.cwd(uri.path)
 
 class FTPResource(Resource):
@@ -86,6 +86,7 @@ class FTPResource(Resource):
         src_file_path = glob.glob(os.path.join(src_dir[0], file_glob))[0]
         file_name = src_file_path.split('/')[-1]
 
+        log.debug('uploading file: %s, as: %s', src_file_path, file_name)
         self.ftp.upload(src_file_path, file_name)
 
         version = self.regex.match(file_name).groupdict()
