@@ -4,6 +4,7 @@
 set -e
 
 # install requirements
+apk add --no-cache vsftpd
 pip install --no-cache-dir -r requirements_dev.txt
 
 # test
