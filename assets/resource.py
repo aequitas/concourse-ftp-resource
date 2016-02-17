@@ -16,7 +16,7 @@ class Resource:
             log.basicConfig(level=log.DEBUG)
         else:
             logfile = tempfile.NamedTemporaryFile(delete=False)
-            log.basicConfig(level=log.DEBUG, filename=logfile)
+            log.basicConfig(level=log.DEBUG, filename=logfile.name)
 
         log.debug('command: %s', command_name)
         log.debug('input: %s', data)

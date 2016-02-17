@@ -9,7 +9,7 @@ pip install --no-cache-dir -r requirements_dev.txt
 
 # test
 pylama /opt/resource /opt/resource-tests/
-RESOURCE_DEBUG=1 py.test -l --tb=short -r fE /opt/resource-tests
+py.test -l --tb=short -r fE /opt/resource-tests
 
 # cleanup
 rm -r /tmp/*
