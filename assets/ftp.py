@@ -103,8 +103,12 @@ class FTPResource(Resource):
 
     def _delete_old_versions(self, keep_versions: int):
         """Delete old versions of file keeping up to specified amont."""
-        old_versions = self._regex_matches(self.ftp.listdir('.'))[:-keep_versions]
-        for delete_file_name in [v.group() for v in old_versions]:
+        versions = [m.groupdict() for m in self._regex_matches(self.ftp.listdir('.'))]
+        versions.sort(key=lambda x: StrictVersion(x[self.version_key]))
+
+        old_versions = versions[:-keep_versions]
+
+        for delete_file_name in [v['file'] for v in old_versions]:
             log.debug('deleting old version: %s', delete_file_name)
             self.ftp.remove(delete_file_name)
 
