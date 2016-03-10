@@ -87,7 +87,7 @@ class FTPResource(Resource):
         glob_files = glob.glob(os.path.join(src_dir[0], file_glob))
         log.debug('glob matched files: %s', glob_files)
         if not glob_files:
-            log.error('no files matched')
+            raise Exception('no files matched {} in {}'.format(file_glob, src_dir[0]))
 
         src_file_path = glob_files[0]
         file_name = src_file_path.split('/')[-1]
