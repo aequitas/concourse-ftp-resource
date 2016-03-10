@@ -171,7 +171,10 @@ class FTPResource:
 
         log.info('uploading file: %s, as: %s', src_file_path, file_name)
         with open(src_file_path, 'rb') as f:
-            self.ftp.storbinary('STOR ' + file_name, f)
+            try:
+                self.ftp.storbinary('STOR ' + file_name, f)
+            except EOFError:
+                log.warning('connection closed during/after transfer')
 
         if keep_versions:
             self._delete_old_versions(keep_versions)
