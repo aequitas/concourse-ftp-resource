@@ -36,6 +36,7 @@ class FTPResource(Resource):
     def context(self,
                 uri: str,
                 regex: str,
+                debug: str = False,
                 version_key: str = 'version') -> str:
         """Provide context for commands to run in, takes 'source'."""
 
