@@ -1,17 +1,18 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import ftplib
 import glob
+import json
 import logging as log
 import os
 import re
 import ssl
 import sys
+import tempfile
 from distutils.version import StrictVersion
-from resource import Resource
 from urllib.parse import urlparse
 
-import ftputil
+from ftputil.stat import UnixParser
 
 
 class UriSession(ftplib.FTP):
@@ -35,26 +36,95 @@ class UriSession(ftplib.FTP):
         log.debug('changing to: %s', uri.path)
         self.cwd(uri.path)
 
-class FTPResource(Resource):
+class FTPResource:
     """FTP resource implementation."""
 
-    def context(self,
-                uri: str,
-                regex: str,
-                debug: str = False,
-                version_key: str = 'version') -> str:
-        """Provide context for commands to run in, takes 'source'."""
+    parser = UnixParser()
 
-        self.regex = re.compile(regex)
-        self.version_key = version_key
+    def run(self, command_name: str, json_data: str, command_argument: str):
+        """Parse input/arguments, perform requested command return output."""
 
-        return ftputil.FTPHost(urlparse(uri), session_factory=UriSession)
+        with tempfile.NamedTemporaryFile(delete=False, prefix=command_name + '-') as f:
+            f.write(bytes(json_data, 'utf-8'))
+
+        data = json.loads(json_data)
+
+        # allow debug logging to console for tests
+        if os.environ.get('RESOURCE_DEBUG', False) or data.get('source', {}).get('debug', False):
+            log.basicConfig(level=log.DEBUG)
+        else:
+            logfile = tempfile.NamedTemporaryFile(delete=False, prefix='log')
+            log.basicConfig(level=log.DEBUG, filename=logfile.name)
+            stderr = log.StreamHandler()
+            stderr.setLevel(log.INFO)
+            log.getLogger().addHandler(stderr)
+
+        log.debug('command: %s', command_name)
+        log.debug('input: %s', data)
+        log.debug('args: %s', command_argument)
+
+        self.regex = re.compile(data['source']['regex'])
+        self.version_key = data['source'].get('version_key', 'version')
+
+        self.connect(urlparse(data['source']['uri']))
+
+        if command_name == 'check':
+            output = self.cmd_check(version=data.get('version', {}))
+        elif command_name == 'in':
+            output = self.cmd_in(command_argument, version=data.get('version'))
+        elif command_name == 'out':
+            output = self.cmd_out(command_argument, **data.get('params', {}))
+
+        self.close()
+
+        return json.dumps(output)
+
+    def connect(self, uri):
+        """Connect to FTP server."""
+
+        if uri.scheme == 'ftps':
+            self.ftp = ftplib.FTP_TLS()
+        else:
+            self.ftp = ftplib.FTP()
+
+        log.info('connecting to ftp server')
+        port = uri.port or 21
+        self.ftp.connect(uri.hostname, port)
+
+        log.info('logging in')
+        if uri.username:
+            self.ftp.login(uri.username, uri.password)
+        else:
+            self.ftp.login()
+
+        log.info('changing to directory %s', uri.path)
+        self.ftp.cwd(uri.path)
+
+    def close(self):
+        """Gracefully close ftp connection."""
+
+        try:
+            self.ftp.quit()
+        except EOFError:
+            self.ftp.close()
+
+    def listdir(self):
+        """List current directory contents."""
+
+        dirlist = []
+        self.ftp.dir(dirlist.append)
+
+        return [self.parser.parse_line(d)._st_name for d in dirlist]
 
     def cmd_check(self, version: dict = {}) -> str:
         """Check for current or new version."""
 
         # get complete list of all versions
-        versions = self._versions_to_output(self._matching_versions(self.ftp.listdir('.')))
+        versions = self._versions_to_output(self._matching_versions(self.listdir()))
+
+        if not versions:
+            log.warning('no versions found')
+            return []
 
         # if version is specified get newer versions
         if version:
@@ -72,7 +142,7 @@ class FTPResource(Resource):
                version: dict) -> str:
         """Retrieve file matching version into dest_dir.."""
         # get matching version from file list
-        versions = self._matching_versions(self.ftp.listdir('.'))
+        versions = self._matching_versions(self.listdir())
 
         match_version = next(v for v in versions if v[self.version_key] == version[self.version_key])
 
@@ -80,7 +150,8 @@ class FTPResource(Resource):
 
         dest_file_path = os.path.join(dest_dir[0], file_name)
 
-        self.ftp.download(file_name, dest_file_path)
+        with open(dest_file_path, 'wb') as f:
+            self.ftp.retrbinary('RETR ' + file_name, callback=f.write)
 
         return self._version_to_output(match_version)
 
@@ -99,7 +170,8 @@ class FTPResource(Resource):
         file_name = src_file_path.split('/')[-1]
 
         log.info('uploading file: %s, as: %s', src_file_path, file_name)
-        self.ftp.upload(src_file_path, file_name)
+        with open(src_file_path, 'rb') as f:
+            self.ftp.storbinary('STOR ' + file_name, f)
 
         if keep_versions:
             self._delete_old_versions(keep_versions)
@@ -109,14 +181,14 @@ class FTPResource(Resource):
 
     def _delete_old_versions(self, keep_versions: int):
         """Delete old versions of file keeping up to specified amont."""
-        versions = [m.groupdict() for m in self._regex_matches(self.ftp.listdir('.'))]
+        versions = [m.groupdict() for m in self._regex_matches(self.listdir())]
         versions.sort(key=lambda x: StrictVersion(x[self.version_key]))
 
         old_versions = versions[:-keep_versions]
 
         for delete_file_name in [v['file'] for v in old_versions]:
             log.debug('deleting old version: %s', delete_file_name)
-            self.ftp.remove(delete_file_name)
+            self.ftp.delete(delete_file_name)
 
 
     def _versions_to_output(self, versions: [str]):
