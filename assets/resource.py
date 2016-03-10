@@ -9,13 +9,16 @@ class Resource:
 
     def run(self, command_name: str, json_data: str, command_argument: str):
         """Parse input/arguments, perform requested command return output."""
+        with tempfile.NamedTemporaryFile(delete=False, prefix='in-') as f:
+            f.write(bytes(json_data, 'utf-8'))
+
         data = json.loads(json_data)
 
         # allow debug logging to console for tests
         if os.environ.get('RESOURCE_DEBUG', False) or data.get('source', {}).get('debug', False):
             log.basicConfig(level=log.DEBUG)
         else:
-            logfile = tempfile.NamedTemporaryFile(delete=False)
+            logfile = tempfile.NamedTemporaryFile(delete=False, prefix='log')
             log.basicConfig(level=log.DEBUG, filename=logfile.name)
             stderr = log.StreamHandler()
             stderr.setLevel(log.INFO)
