@@ -151,7 +151,10 @@ class FTPResource:
         dest_file_path = os.path.join(dest_dir[0], file_name)
 
         with open(dest_file_path, 'wb') as f:
-            self.ftp.retrbinary('RETR ' + file_name, callback=f.write)
+            try:
+                self.ftp.retrbinary('RETR ' + file_name, callback=f.write)
+            except EOFError:
+                log.warning('connection closed during/after transfer')
 
         return self._version_to_output(match_version)
 
