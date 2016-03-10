@@ -155,3 +155,18 @@ def test_delete_old_sorting(ftp_root, ftp_server, work_dir):
             {"name": "file", "value": "filename-0.0.14.tgz"},
         ]
     }
+
+def test_logging(ftp_root, ftp_server, work_dir, capfd):
+    """Test if a file can be stored."""
+
+    work_dir.join('filename-0.0.0.tgz').write(CONTENT)
+
+    source = {
+        "uri": ftp_server,
+        "regex": "(?P<file>filename-(?P<version>.*).tgz)"
+    }
+
+    cmd('out', source, [str(work_dir)])
+
+    # test if INFO messages are logged
+    assert 'uploading file:' in capfd.readouterr()[1]

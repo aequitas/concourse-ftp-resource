@@ -17,6 +17,9 @@ class Resource:
         else:
             logfile = tempfile.NamedTemporaryFile(delete=False)
             log.basicConfig(level=log.DEBUG, filename=logfile.name)
+            stderr = log.StreamHandler()
+            stderr.setLevel(log.INFO)
+            log.getLogger().addHandler(stderr)
 
         log.debug('command: %s', command_name)
         log.debug('input: %s', data)

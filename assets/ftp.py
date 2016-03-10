@@ -92,7 +92,7 @@ class FTPResource(Resource):
         src_file_path = glob_files[0]
         file_name = src_file_path.split('/')[-1]
 
-        log.debug('uploading file: %s, as: %s', src_file_path, file_name)
+        log.info('uploading file: %s, as: %s', src_file_path, file_name)
         self.ftp.upload(src_file_path, file_name)
 
         if keep_versions:
