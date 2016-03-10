@@ -193,3 +193,23 @@ def test_log_input(ftp_root, ftp_server, work_dir, capfd):
 
     with open(in_files[-1]) as f:
         assert set(json.loads(f.read()).keys()) == {"params", "source", "version"}
+
+def test_put_a_file_ssl(ftp_root, ftp_server, work_dir):
+    """Test if a file can be stored."""
+
+    work_dir.join('filename-0.0.0.tgz').write(CONTENT)
+
+    source = {
+        "uri": ftp_server.replace('ftp', 'ftps'),
+        "regex": "(?P<file>filename-(?P<version>.*).tgz)"
+    }
+
+    result = cmd('out', source, [str(work_dir)])
+
+    assert ftp_root.join(DIRECTORY).join('filename-0.0.0.tgz').read() == CONTENT
+    assert result == {
+        "version": {"version": "0.0.0"},
+        "metadata": [
+            {"name": "file", "value": "filename-0.0.0.tgz"},
+        ]
+    }

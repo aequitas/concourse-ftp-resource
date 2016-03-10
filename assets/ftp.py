@@ -5,6 +5,7 @@ import glob
 import logging as log
 import os
 import re
+import ssl
 import sys
 from distutils.version import StrictVersion
 from resource import Resource
@@ -15,11 +16,15 @@ import ftputil
 
 class UriSession(ftplib.FTP):
     """Ftputil session to accept a URI as contructor argument."""
+    ssl_version = ssl.PROTOCOL_SSLv23
 
     def __init__(self, uri):
         """Setup FTP session using provided URI."""
 
-        ftplib.FTP.__init__(self)
+        if uri.scheme == 'ftps':
+            ftplib.FTP_TLS.__init__(self)
+        else:
+            ftplib.FTP.__init__(self)
         port = uri.port or 21
         self.connect(uri.hostname, port)
         if uri.username:
