@@ -13,7 +13,7 @@ No changes are necessary to BOSH configuration. However, you must define the FTP
 * `uri`: *Required.* The URI for the FTP server (including path).
     Example: `ftp://user:password@example.com/team/prod/`
 
-* `regex`: *Required.* Regex to match filenames to. Supports capture groups. Requires at least one capture group named `version`. Other groups are added as `metadata`.
+* `regex`: *Required.* Python regex to match filenames to. Supports capture groups. Requires at least one capture group named `version`. Other groups are added as `metadata`.
 
 * `version_key`: *Optional* Alternative key to be used for the `version` capture group (default `version`).
 
