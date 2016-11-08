@@ -223,4 +223,5 @@ class FTPResource:
 
         return output
 
+
 print(FTPResource().run(os.path.basename(__file__), sys.stdin.read(), sys.argv[1:]))

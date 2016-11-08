@@ -14,7 +14,7 @@ CONTENT = '123'
 
 @pytest.fixture
 def free_port():
-    """temporary bind to socket 0 to get a free port assigned by the OS."""
+    """Temporary bind to socket 0 to get a free port assigned by the OS."""
     sock = socket.socket()
     sock.bind(('', 0))
     port = sock.getsockname()[1]
@@ -33,10 +33,7 @@ def work_dir(tmpdir):
 
 @pytest.yield_fixture
 def ftp_server(ftp_root, free_port):
-    """Run FTP server on ftp_root.
-
-    Returns uri to the ftp.
-    """
+    """Run FTP server on ftp_root. Returns uri to the ftp."""
 
     ftp_root.mkdir(DIRECTORY).chmod(stat.S_IWOTH | stat.S_IXOTH | stat.S_IROTH)
 
