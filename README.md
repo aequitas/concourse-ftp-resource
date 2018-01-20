@@ -4,6 +4,10 @@ Concourse resource to interact with FTP servers.
 
 https://hub.docker.com/r/aequitas/ftp-resource/
 
+## Recent changes
+
+- 01-2018: added support for semver versions.
+
 ## Deploying to Concourse
 
 No changes are necessary to BOSH configuration. However, you must define the FTP resource in a `resource_types` as can be seen in the below example pipeline.

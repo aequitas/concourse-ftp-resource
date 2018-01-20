@@ -2,7 +2,7 @@ user=aequitas
 name=ftp-resource
 
 # get docker config from running VM instance (OSX)
-docker=docker $(shell docker-machine config dev)
+docker=docker
 
 .PHONY: test
 
