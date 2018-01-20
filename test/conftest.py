@@ -12,31 +12,32 @@ DIRECTORY = 'test'
 # default content for files to test
 CONTENT = '123'
 
+
 @pytest.fixture
 def free_port():
-    """temporary bind to socket 0 to get a free port assigned by the OS."""
+    """Temporary bind to socket 0 to get a free port assigned by the OS."""
     sock = socket.socket()
     sock.bind(('', 0))
     port = sock.getsockname()[1]
     sock.close()
     return port
 
+
 @pytest.fixture
 def ftp_root(tmpdir):
     """Return temporary ftp root directory."""
     return tmpdir.mkdir('ftproot')
+
 
 @pytest.fixture
 def work_dir(tmpdir):
     """Return temporary directory for output/input files."""
     return tmpdir.mkdir('work_dir')
 
+
 @pytest.yield_fixture
 def ftp_server(ftp_root, free_port):
-    """Run FTP server on ftp_root.
-
-    Returns uri to the ftp.
-    """
+    """Run FTP server on ftp_root. Returns uri to the ftp."""
 
     ftp_root.mkdir(DIRECTORY).chmod(stat.S_IWOTH | stat.S_IXOTH | stat.S_IROTH)
 
@@ -51,6 +52,7 @@ def ftp_server(ftp_root, free_port):
 
     process.terminate()
 
+
 def cmd(cmd_name, source, args: list = [], version={}, params={}):
     """Wrap command interaction for easier use with python objects."""
 
@@ -64,6 +66,7 @@ def cmd(cmd_name, source, args: list = [], version={}, params={}):
         stderr=sys.stderr, input=bytes(in_json, 'utf-8'))
 
     return json.loads(output.decode())
+
 
 def make_files(root, files, content='123'):
     """Create files in tmpdir root."""
