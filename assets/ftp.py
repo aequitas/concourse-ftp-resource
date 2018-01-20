@@ -9,9 +9,9 @@ import re
 import ssl
 import sys
 import tempfile
-from distutils.version import StrictVersion
 from urllib.parse import urlparse
 
+import semver
 from ftputil.stat import UnixParser
 
 
@@ -188,7 +188,7 @@ class FTPResource:
     def _delete_old_versions(self, keep_versions: int):
         """Delete old versions of file keeping up to specified amont."""
         versions = [m.groupdict() for m in self._regex_matches(self.listdir())]
-        versions.sort(key=lambda x: StrictVersion(x[self.version_key]))
+        versions.sort(key=lambda x: semver.parse_version_info(x[self.version_key]))
 
         old_versions = versions[:-keep_versions]
 
@@ -199,7 +199,7 @@ class FTPResource:
 
     def _versions_to_output(self, versions: [str]):
         """Convert list of k/v dicts into list of `version` output."""
-        versions.sort(key=lambda x: StrictVersion(x[self.version_key]))
+        versions.sort(key=lambda x: semver.parse_version_info(x[self.version_key]))
         output = [{self.version_key: version[self.version_key]} for version in versions]
 
         return output
@@ -222,5 +222,6 @@ class FTPResource:
             ]})
 
         return output
+
 
 print(FTPResource().run(os.path.basename(__file__), sys.stdin.read(), sys.argv[1:]))
