@@ -6,19 +6,14 @@ https://hub.docker.com/r/aequitas/ftp-resource/
 
 ## Deploying to Concourse
 
-In your bosh deployment manifest, add to the `groundcrew.additional_resource_types` with the following:
-
-```yaml
-- image: docker:///aequitas/ftp-resource
-  type: ftp
-```
+No changes are necessary to BOSH configuration. However, you must define the FTP resource in a `resource_types` as can be seen in the below example pipeline.
 
 ## Source Configuration
 
 * `uri`: *Required.* The URI for the FTP server (including path).
     Example: `ftp://user:password@example.com/team/prod/`
 
-* `regex`: *Required.* Regex to match filenames to. Supports capture groups. Requires at least one capture group named `version`. Other groups are added as `metadata`.
+* `regex`: *Required.* Python regex to match filenames to. Supports capture groups. Requires at least one capture group named `version`. Other groups are added as `metadata`.
 
 * `version_key`: *Optional* Alternative key to be used for the `version` capture group (default `version`).
 
@@ -53,21 +48,37 @@ Uploads a file(s) glob matching `file` to the ftp directory specified by `uri`.
 ## Example pipeline
 
 ```yaml
+resource_types:
+  - name: ftp
+    type: docker-image
+    source:
+      repository: aequitas/ftp-resource
+
 resources:
-    - name: upload
-      type: ftp
-      source:
-          uri: ftp://user:password@example.com:21/team/prod/
-          regex: (?P<file>package_name-(?P<version>[0-9\.]+).*\.whl)
+  - name: ftpupload
+    type: ftp
+    source:
+      regex: (?P<file>test(?P<version>[0-9\.]+).*\.txt)
+      uri: ftp://user:password@example.com:21/team/prod/
 
 jobs:
-    - name: test ftp
-      plan:
-          - task: build
-            file: ci/build.yaml
-
-          - put: upload
-            params:
-                file: build/dist/package_name-*.whl
+  - name: testftp
+    plan:
+      - task: touchfile
+        config:
+          platform: linux
+          run:
+            path: sh
+            args:
+            - -exc
+            - |
+              touch test/test1.txt
+          outputs:
+          - name: test
+      - put: ftpupload
+        params:
+          file: test/test1.txt
 
 ```
+
+
