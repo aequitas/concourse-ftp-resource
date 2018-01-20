@@ -20,7 +20,7 @@ class UriSession(ftplib.FTP):
     ssl_version = ssl.PROTOCOL_SSLv23
 
     def __init__(self, uri):
-        """Setup FTP session using provided URI."""
+        """Set up FTP session using provided URI."""
 
         if uri.scheme == 'ftps':
             ftplib.FTP_TLS.__init__(self)
@@ -35,6 +35,7 @@ class UriSession(ftplib.FTP):
 
         log.debug('changing to: %s', uri.path)
         self.cwd(uri.path)
+
 
 class FTPResource:
     """FTP resource implementation."""
