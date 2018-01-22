@@ -115,7 +115,7 @@ class FTPResource:
         dirlist = []
         self.ftp.dir(dirlist.append)
 
-        return [self.parser.parse_line(d)._st_name for d in dirlist]
+        return [self.parser.parse_line(d)._st_name for d in dirlist if not self.parser.ignores_line(d)]
 
     def cmd_check(self, version: dict = {}) -> str:
         """Check for current or new version."""
@@ -196,7 +196,6 @@ class FTPResource:
         for delete_file_name in [v['file'] for v in old_versions]:
             log.debug('deleting old version: %s', delete_file_name)
             self.ftp.delete(delete_file_name)
-
 
     def _versions_to_output(self, versions: [str]):
         """Convert list of k/v dicts into list of `version` output."""
