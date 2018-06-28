@@ -6,6 +6,7 @@ https://hub.docker.com/r/aequitas/ftp-resource/
 
 ## Recent changes
 
+- 06-2018: Handle missing previous versions (https://github.com/aequitas/concourse-ftp-resource/issues/8)
 - 01-2018: added support for semver versions.
 
 ## Deploying to Concourse

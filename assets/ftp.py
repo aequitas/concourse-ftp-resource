@@ -127,16 +127,18 @@ class FTPResource:
             log.warning('no versions found')
             return []
 
-        # if version is specified get newer versions
-        if version:
-            current_version = version
-            new_versions = versions[versions.index(current_version):]
-            new_versions.pop(0)
-        else:
-            # otherwise only get the current version
-            new_versions = [versions[-1]]
+        # https://concourse-ci.org/implementing-resources.html#resource-check
 
-        return new_versions
+        # no initial version, only return most recent version
+        if not version:
+            return [versions[-1]]
+
+        # if version is no longer valid, get all new versions
+        if version not in versions:
+            return versions
+
+        # if initial version is valid return all new versions since then
+        return versions[versions.index(version)+1:]
 
     def cmd_in(self,
                dest_dir: [str],

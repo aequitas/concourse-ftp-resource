@@ -79,3 +79,17 @@ def test_check_no_new_version(ftp_root, ftp_server):
     result = cmd('check', source, version={"version": "0.0.1"})
 
     assert result == []
+
+def test_check_missing_version(ftp_root, ftp_server):
+    """When passing a version that is no longer valid, all other versions should be returned."""
+
+    make_files(ftp_root, ['filename-0.0.1.tgz', 'filename-0.0.2.tgz'])
+
+    source = {
+        "uri": ftp_server,
+        "regex": "(?P<file>filename-(?P<version>.*).tgz)"
+    }
+
+    result = cmd('check', source, version={"version": "0.0.1"})
+
+    assert result == ['filename-0.0.1.tgz', 'filename-0.0.2.tgz']
