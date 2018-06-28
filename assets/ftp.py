@@ -123,22 +123,35 @@ class FTPResource:
         # get complete list of all versions
         versions = self._versions_to_output(self._matching_versions(self.listdir()))
 
-        if not versions:
-            log.warning('no versions found')
-            return []
+        return self._filter_new_versions(versions, version)
 
-        # https://concourse-ci.org/implementing-resources.html#resource-check
+    def _filter_new_versions(self, versions, version):
+        """Filter and sort version list according to concourse spec for new versions.
+
+        https://concourse-ci.org/implementing-resources.html#resource-check
+        """
+
+        requested_version_valid = True
+
+        # temporary add requested version for sorting/filter purposes
+        if version and version not in versions:
+            versions.append(version)
+            requested_version_valid = False
+
+        versions.sort(key=lambda x: semver.parse_version_info(x[self.version_key]))
 
         # no initial version, only return most recent version
         if not version:
             return [versions[-1]]
 
-        # if version is no longer valid, get all new versions
-        if version not in versions:
-            return versions
+        # remove all old versions
+        versions = versions[versions.index(version):]
 
-        # if initial version is valid return all new versions since then
-        return versions[versions.index(version)+1:]
+        # remove requested version if it was not in the received version list
+        if not requested_version_valid:
+            versions.remove(version)
+
+        return versions
 
     def cmd_in(self,
                dest_dir: [str],

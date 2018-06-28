@@ -62,12 +62,12 @@ def test_check_passing_version(ftp_root, ftp_server):
 
     assert {"version": "0.0.2"} in result, 'new version should be in result'
     assert {"version": "0.0.3"} in result, 'new version should be in result'
+    assert {"version": "0.0.1"} in result, 'current version should be in result'
     assert {"version": "0.0.0"} not in result, 'older version should not be in result'
-    assert {"version": "0.0.1"} not in result, 'current version should not be in result'
 
 
 def test_check_no_new_version(ftp_root, ftp_server):
-    """When passing a version an no newer files return nothing."""
+    """When passing a version and no newer files are found return requested version."""
 
     make_files(ftp_root, ['filename-0.0.0.tgz', 'filename-0.0.1.tgz'])
 
@@ -78,12 +78,12 @@ def test_check_no_new_version(ftp_root, ftp_server):
 
     result = cmd('check', source, version={"version": "0.0.1"})
 
-    assert result == []
+    assert {"version": "0.0.1"} in result, 'current version should be in result'
 
 def test_check_missing_version(ftp_root, ftp_server):
-    """When passing a version that is no longer valid, all other versions should be returned."""
+    """When passing a version that is no longer valid newer versions should be returned."""
 
-    make_files(ftp_root, ['filename-0.0.1.tgz', 'filename-0.0.2.tgz'])
+    make_files(ftp_root, ['filename-0.0.2.tgz', 'filename-0.0.3.tgz'])
 
     source = {
         "uri": ftp_server,
@@ -92,4 +92,26 @@ def test_check_missing_version(ftp_root, ftp_server):
 
     result = cmd('check', source, version={"version": "0.0.1"})
 
-    assert result == ['filename-0.0.1.tgz', 'filename-0.0.2.tgz']
+    assert {"version": "0.0.0"} not in result, 'older version should not be in result'
+    assert {"version": "0.0.1"} not in result, 'current version should not be in result'
+    assert {"version": "0.0.2"} in result, 'new version should be in result'
+    assert {"version": "0.0.3"} in result, 'new version should be in result'
+
+def test_check_requested_version_missing(ftp_root, ftp_server):
+    """Test when the requested version is no longer valid it is not returned."""
+
+    make_files(ftp_root, [
+        'filename-0.0.0.tgz', 'filename-0.0.2.tgz', 'filename-0.0.3.tgz'
+    ])
+
+    source = {
+        "uri": ftp_server,
+        "regex": "(?P<file>filename-(?P<version>.*).tgz)"
+    }
+
+    result = cmd('check', source, version={"version": "0.0.1"})
+
+    assert {"version": "0.0.2"} in result, 'new version should be in result'
+    assert {"version": "0.0.3"} in result, 'new version should be in result'
+    assert {"version": "0.0.1"} not in result, 'current version should not be in result'
+    assert {"version": "0.0.0"} not in result, 'older version should not be in result'
