@@ -1,3 +1,8 @@
+[![Docker Automated build](https://img.shields.io/docker/pullsg/aequitas/ftp-resource.svg)](https://hub.docker.com/r/aequitas/ftp-resource/)
+[![Docker Automated build](https://img.shields.io/docker/automated/aequitas/ftp-resource.svg)](https://hub.docker.com/r/aequitas/ftp-resource/)
+[![Docker Automated build](https://img.shields.io/docker/build/aequitas/ftp-resource.svg)](https://hub.docker.com/r/aequitas/ftp-resource/g)
+[![Cyberveiligheid](https://img.shields.io/badge/Cyberveiligheid-97%25-yellow.svg)](https://eurocyber.nl)
+
 # FTP Resource
 
 Concourse resource to interact with FTP servers.
