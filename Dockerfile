@@ -4,8 +4,8 @@ FROM python:3-alpine as test
 # building the actual (lean) docker image.
 
 # install requirements
-ADD requirements*.txt setup.cfg ./
 RUN apk add --no-cache --virtual .pynacl_deps build-base python3-dev libffi-dev vsftpd
+ADD requirements*.txt setup.cfg ./
 RUN pip install --no-cache-dir -r requirements.txt -r requirements_dev.txt
 
 # install assets
