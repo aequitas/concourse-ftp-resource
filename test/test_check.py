@@ -80,6 +80,7 @@ def test_check_no_new_version(ftp_root, ftp_server):
 
     assert {"version": "0.0.1"} in result, 'current version should be in result'
 
+
 def test_check_missing_version(ftp_root, ftp_server):
     """When passing a version that is no longer valid newer versions should be returned."""
 
@@ -96,6 +97,7 @@ def test_check_missing_version(ftp_root, ftp_server):
     assert {"version": "0.0.1"} not in result, 'current version should not be in result'
     assert {"version": "0.0.2"} in result, 'new version should be in result'
     assert {"version": "0.0.3"} in result, 'new version should be in result'
+
 
 def test_check_requested_version_missing(ftp_root, ftp_server):
     """Test when the requested version is no longer valid it is not returned."""
@@ -115,3 +117,22 @@ def test_check_requested_version_missing(ftp_root, ftp_server):
     assert {"version": "0.0.3"} in result, 'new version should be in result'
     assert {"version": "0.0.1"} not in result, 'current version should not be in result'
     assert {"version": "0.0.0"} not in result, 'older version should not be in result'
+
+
+def test_invalid_versions_should_be_skipped(ftp_root, ftp_server):
+    """Test if an version not conforming to semver can be skipped."""
+
+    make_files(ftp_root, [
+        'filename-0.0.0.tgz', 'filename-0.0.1.2.tgz'
+    ])
+
+    source = {
+        "uri": ftp_server,
+        "regex": "(?P<file>filename-(?P<version>.*).tgz)",
+        "ignore_invalid_versions": True,
+    }
+
+    result = cmd('check', source, version={"version": "0.0.0"})
+
+    assert {"version": "0.0.0"} in result, 'valid version should be in result'
+    assert {"version": "0.0.1.2"} not in result, 'invalid version should not be in result'

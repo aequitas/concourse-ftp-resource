@@ -9,6 +9,7 @@ import re
 import ssl
 import sys
 import tempfile
+from typing import Dict, List
 from urllib.parse import urlparse
 
 import semver
@@ -66,6 +67,7 @@ class FTPResource:
 
         self.regex = re.compile(data['source']['regex'])
         self.version_key = data['source'].get('version_key', 'version')
+        self.ignore_invalid_versions = data['source'].get('ignore_invalid_versions', False)
 
         self.connect(urlparse(data['source']['uri']))
 
@@ -138,6 +140,9 @@ class FTPResource:
             versions.append(version)
             requested_version_valid = False
 
+        if self.ignore_invalid_versions:
+            versions = [v for v in versions if self._valid_version(v[self.version_key])]
+
         versions.sort(key=lambda x: semver.parse_version_info(x[self.version_key]))
 
         # no initial version, only return most recent version
@@ -204,6 +209,10 @@ class FTPResource:
     def _delete_old_versions(self, keep_versions: int):
         """Delete old versions of file keeping up to specified amont."""
         versions = [m.groupdict() for m in self._regex_matches(self.listdir())]
+
+        if self.ignore_invalid_versions:
+            versions = [v for v in versions if self._valid_version(v[self.version_key])]
+
         versions.sort(key=lambda x: semver.parse_version_info(x[self.version_key]))
 
         old_versions = versions[:-keep_versions]
@@ -212,12 +221,24 @@ class FTPResource:
             log.debug('deleting old version: %s', delete_file_name)
             self.ftp.delete(delete_file_name)
 
-    def _versions_to_output(self, versions: [str]):
+    def _versions_to_output(self, versions: List[Dict]):
         """Convert list of k/v dicts into list of `version` output."""
-        versions.sort(key=lambda x: semver.parse_version_info(x[self.version_key]))
         output = [{self.version_key: version[self.version_key]} for version in versions]
 
+        if self.ignore_invalid_versions:
+            output = [v for v in output if self._valid_version(v[self.version_key])]
+
+        output.sort(key=lambda x: semver.parse_version_info(x[self.version_key]))
+
         return output
+
+    def _valid_version(self, version: str):
+        """Return true if a string is valid semver."""
+        try:
+            semver.parse_version_info(version)
+            return True
+        except ValueError:
+            return False
 
     def _regex_matches(self, file_list: [str]):
         """Return list of matched regex objects for matching elements in file_list."""
